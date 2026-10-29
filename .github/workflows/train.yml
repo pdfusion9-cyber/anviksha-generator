@@ -1,0 +1,67 @@
+name: train-gan
+
+on:
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: "number of epochs"
+        required: true
+        default: "12"
+      minutes:
+        description: "hard time budget in minutes (the runner is stopped after this)"
+        required: true
+        default: "50"
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Fetch training images
+        run: python src/download_images.py --out data/raw
+
+      - name: Flatten images
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          src, dst = Path("data/raw/data"), Path("data/images")
+          dst.mkdir(parents=True, exist_ok=True)
+          count = 0
+          for split in ("train", "valid"):
+              for path in sorted((src / split).rglob("*.jpg")):
+                  shutil.copy(path, dst / f"{split}_{path.parent.name}_{path.name}")
+                  count += 1
+          print(f"flattened {count} images")
+          PY
+
+      - name: Train
+        run: |
+          SECONDS_BUDGET=$(( ${{ github.event.inputs.minutes }} * 60 ))
+          python src/train_gan.py --data data/images \
+            --epochs ${{ github.event.inputs.epochs }} \
+            --batch 16 --base 32 --threads 2 \
+            --time-budget $SECONDS_BUDGET --resume --out weights
+
+      - name: Upload checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: gan-checkpoint
+          path: |
+            weights/gan.pt
+            weights/metrics.json
+            weights/epoch_*.png
+          retention-days: 30

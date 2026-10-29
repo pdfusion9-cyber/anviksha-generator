@@ -1,0 +1,27 @@
+{
+  "image_size": 64,
+  "z_dim": 128,
+  "generator_base": 32,
+  "discriminator_base": 32,
+  "batch_size": 16,
+  "learning_rate": 0.0002,
+  "betas": [0.5, 0.999],
+  "epochs": 40,
+  "dataset": {
+    "default": "tanmaykm/indian_dance_forms",
+    "license": "Apache-2.0",
+    "images": 1188
+  },
+  "measured_speed": {
+    "cpu_cores": 2,
+    "seconds_per_step": 0.89,
+    "seconds_per_epoch": 66,
+    "minutes_for_40_epochs": 44
+  },
+  "video": {
+    "method": "spherical interpolation between two latent vectors",
+    "frames_default": 48,
+    "fps_default": 12,
+    "note": "motion in latent space, not a learned temporal model"
+  }
+}

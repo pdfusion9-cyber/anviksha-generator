@@ -1,0 +1,6 @@
+torch>=2.1
+numpy>=1.24
+pillow>=10.0
+gradio>=4.44
+imageio>=2.34
+imageio-ffmpeg>=0.5

@@ -1,0 +1,7 @@
+data/
+weights/*.pt
+samples/*.mp4
+samples/*.gif
+__pycache__/
+*.pyc
+.venv/
